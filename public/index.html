@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dynamic AI</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #6e48aa;
+      --secondary: #9d50bb;
+      --dark: #1a1a2e;
+      --light: #f8f9fa;
+      --gray: #6c757d;
+      --success: #28a745;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f5f7fa;
+      color: #333;
+      line-height: 1.6;
+    }
+    
+    #app {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+    
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 0;
+      border-bottom: 1px solid #e1e4e8;
+      margin-bottom: 20px;
+    }
+    
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .logo h1 {
+      font-size: 24px;
+      font-weight: 600;
+      background: linear-gradient(to right, var(--primary), var(--secondary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    
+    .chat-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      overflow: hidden;
+    }
+    
+    .chat-messages {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+    }
+    
+    .message {
+      margin-bottom: 20px;
+      display: flex;
+      gap: 12px;
+    }
+    
+    .message-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background-color: var(--primary);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+    
+    .user-avatar {
+      background-color: var(--gray);
+    }
+    
+    .message-content {
+      flex: 1;
+    }
+    
+    .message-role {
+      font-weight: 600;
+      margin-bottom: 4px;
+      color: var(--dark);
+    }
+    
+    .message-text {
+      white-space: pre-wrap;
+    }
+    
+    .input-area {
+      padding: 20px;
+      border-top: 1px solid #e1e4e8;
+      background: #f8f9fa;
+    }
+    
+    .input-container {
+      display: flex;
+      gap: 10px;
+    }
+    
+    textarea {
+      flex: 1;
+      padding: 12px 16px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      resize: none;
+      font-family: inherit;
+      font-size: 16px;
+      min-height: 60px;
+      max-height: 200px;
+      outline: none;
+      transition: border 0.2s;
+    }
+    
+    textarea:focus {
+      border-color: var(--primary);
+    }
+    
+    button {
+      background: linear-gradient(to right, var(--primary), var(--secondary));
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 0 20px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: opacity 0.2s;
+    }
+    
+    button:hover {
+      opacity: 0.9;
+    }
+    
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    
+    .typing-indicator {
+      display: flex;
+      gap: 5px;
+      padding: 10px 0;
+    }
+    
+    .typing-dot {
+      width: 8px;
+      height: 8px;
+      background-color: var(--gray);
+      border-radius: 50%;
+      animation: typingAnimation 1.4s infinite ease-in-out;
+    }
+    
+    .typing-dot:nth-child(1) { animation-delay: 0s; }
+    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+    
+    @keyframes typingAnimation {
+      0%, 60%, 100% { transform: translateY(0); }
+      30% { transform: translateY(-5px); }
+    }
+    
+    @media (max-width: 768px) {
+      #app {
+        padding: 10px;
+      }
+      
+      .chat-container {
+        border-radius: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <header>
+      <div class="logo">
+        <div class="message-avatar">D</div>
+        <h1>Dynamic AI</h1>
+      </div>
+    </header>
+    
+    <div class="chat-container">
+      <div class="chat-messages" id="chat-messages">
+        <!-- Messages will appear here -->
+      </div>
+      
+      <div class="input-area">
+        <div class="input-container">
+          <textarea id="user-input" placeholder="Type your message here..." rows="1"></textarea>
+          <button id="send-button">Send</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const chatMessages = document.getElementById('chat-messages');
+      const userInput = document.getElementById('user-input');
+      const sendButton = document.getElementById('send-button');
+      
+      let messages = [
+        { role: 'assistant', content: 'Hello! I\'m Dynamic AI, your intelligent assistant. How can I help you today?' }
+      ];
+      
+      // Render initial message
+      renderMessages();
+      
+      // Auto-resize textarea
+      userInput.addEventListener('input', () => {
+        userInput.style.height = 'auto';
+        userInput.style.height = (userInput.scrollHeight) + 'px';
+      });
+      
+      // Send message on button click
+      sendButton.addEventListener('click', sendMessage);
+      
+      // Send message on Enter (but allow Shift+Enter for new lines)
+      userInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          sendMessage();
+        }
+      });
+      
+      function renderMessages() {
+        chatMessages.innerHTML = '';
+        messages.forEach(msg => {
+          const messageDiv = document.createElement('div');
+          messageDiv.className = 'message';
+          
+          const avatarDiv = document.createElement('div');
+          avatarDiv.className = `message-avatar ${msg.role === 'user' ? 'user-avatar' : ''}`;
+          avatarDiv.textContent = msg.role === 'user' ? 'Y' : 'D';
+          
+          const contentDiv = document.createElement('div');
+          contentDiv.className = 'message-content';
+          
+          const roleDiv = document.createElement('div');
+          roleDiv.className = 'message-role';
+          roleDiv.textContent = msg.role === 'user' ? 'You' : 'Dynamic AI';
+          
+          const textDiv = document.createElement('div');
+          textDiv.className = 'message-text';
+          textDiv.textContent = msg.content;
+          
+          contentDiv.appendChild(roleDiv);
+          contentDiv.appendChild(textDiv);
+          messageDiv.appendChild(avatarDiv);
+          messageDiv.appendChild(contentDiv);
+          
+          chatMessages.appendChild(messageDiv);
+        });
+        
+        // Scroll to bottom
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      }
+      
+      function showTypingIndicator() {
+        const typingDiv = document.createElement('div');
+        typingDiv.className = 'message';
+        typingDiv.id = 'typing-indicator';
+        
+        const avatarDiv = document.createElement('div');
+        avatarDiv.className = 'message-avatar';
+        avatarDiv.textContent = 'D';
+        
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'message-content';
+        
+        const roleDiv = document.createElement('div');
+        roleDiv.className = 'message-role';
+        roleDiv.textContent = 'Dynamic AI';
+        
+        const typingContainer = document.createElement('div');
+        typingContainer.className = 'typing-indicator';
+        typingContainer.innerHTML = `
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+        `;
+        
+        contentDiv.appendChild(roleDiv);
+        contentDiv.appendChild(typingContainer);
+        typingDiv.appendChild(avatarDiv);
+        typingDiv.appendChild(contentDiv);
+        
+        chatMessages.appendChild(typingDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      }
+      
+      function hideTypingIndicator() {
+        const indicator = document.getElementById('typing-indicator');
+        if (indicator) {
+          indicator.remove();
+        }
+      }
+      
+      async function sendMessage() {
+        const userMessage = userInput.value.trim();
+        if (!userMessage) return;
+        
+        // Add user message to chat
+        messages.push({ role: 'user', content: userMessage });
+        userInput.value = '';
+        userInput.style.height = 'auto';
+        renderMessages();
+        
+        // Disable input while waiting for response
+        userInput.disabled = true;
+        sendButton.disabled = true;
+        
+        // Show typing indicator
+        showTypingIndicator();
+        
+        try {
+          const response = await fetch('http://localhost:3001/api/chat', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ messages }),
+          });
+          
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          
+          const data = await response.json();
+          messages.push(data);
+        } catch (error) {
+          console.error('Error:', error);
+          messages.push({
+            role: 'assistant',
+            content: 'Sorry, I encountered an error. Please try again.'
+          });
+        } finally {
+          hideTypingIndicator();
+          renderMessages();
+          userInput.disabled = false;
+          sendButton.disabled = false;
+          userInput.focus();
+        }
+      }
+    });
+  </script>
+</body>
+</html>
